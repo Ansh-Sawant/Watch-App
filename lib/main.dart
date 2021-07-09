@@ -27,12 +27,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late TabController tb;
+
+  // For TIMER
   int hour = 0, min = 0, sec = 0;
   String timeToDisplay = "";
   bool started = true, stopped = true;
   late int timeForTimer;
   final dur = const Duration(seconds: 1);
   bool cancelTimer = false;
+
+  // For STOPWATCH
+  String timeToDisplaySW = "0:0:0";
+  bool startedSW = true, stoppedSW = true;
+  int hourSW = 0, minSW = 0, secSW = 0;
+  bool cancelSW = false;
 
   @override
   void initState(){
@@ -44,7 +52,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void start(){
-
     setState(() {
       started = false;
       stopped = false;
@@ -224,11 +231,119 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  // STOPWATCH
+  void startSW() {
+    setState(() {
+      startedSW = false;
+      stoppedSW = false;
+    });
+
+    Timer.periodic(dur, (Timer t) {
+      setState(() {
+        if(cancelSW == true){
+          t.cancel();
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ));
+        }
+
+        if(secSW > 58){
+          minSW += 1;
+          secSW = -1;
+          
+        }
+
+        if(minSW > 58){
+          hourSW += 1;
+          minSW = 0;
+          secSW = 0;
+        }
+
+        secSW += 1;
+        timeToDisplaySW = hourSW.toString() + ":" + minSW.toString() + ":" + secSW.toString();
+      });
+    });
+  }
+
+  void stopSW() {
+    setState(() {
+      startedSW = true;
+      stoppedSW = true;
+      cancelSW = true;
+      hourSW = 0;
+      minSW = 0;
+      secSW = -1;
+    });
+  }
+
+  Widget stopWatch() {
+    return Container(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget> [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  timeToDisplaySW,
+                  style: TextStyle(
+                    fontSize: 28.0,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: startedSW ? startSW : null,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 35.0,
+                      vertical: 12.0,
+                    ),
+                    child: Text(
+                      "Start",
+                      style: TextStyle(
+                        fontSize: 18.0,
+                      ),
+                    ),
+                  ),
+                ),
+
+                ElevatedButton(
+                  onPressed: stoppedSW ? null : stopSW,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 35.0,
+                      vertical: 12.0,
+                    ),
+                    child: Text(
+                      "Stop",
+                      style: TextStyle(
+                        fontSize: 18.0,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Watch"),
+        title: Text("Ansh Watch"),
         centerTitle: true,
         bottom: TabBar(
           tabs: <Widget>[
@@ -248,7 +363,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: TabBarView(
         children: <Widget> [
           timer(),
-          Text("Stopwatch"),
+          stopWatch(),
         ],
         
         controller: tb,
